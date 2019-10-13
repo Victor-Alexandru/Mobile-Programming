@@ -1,0 +1,11 @@
+projectIdea:
+The bussiness idea is about the "amateur football championships"
+We will have 3 entities :
+1.User - who can create ,update,delete his/her championships  and teams
+2.Championship- Every championship has many teams and a trophy and a FK to the user who created it and also the total 
+number of matches that a team can play
+3.Team - a team has a name,the number of matches played count and the points as well as a Fk to the championship
+projectDescription:
+ A user can manage football championships for amateur players and can keep track of the scores regarding the matches 
+that they played.
+
