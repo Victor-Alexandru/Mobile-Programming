@@ -2,6 +2,7 @@ package com.example.footballmanager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,6 +89,15 @@ public class ChampionshipAdapter extends BaseAdapter {
                     errorToast.show();
                 }
 
+            }
+        });
+
+        btnPreview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, Teams.class);
+                intent.putExtra("teamObject",tempChampionship);
+                mContext.startActivity(intent);
             }
         });
 

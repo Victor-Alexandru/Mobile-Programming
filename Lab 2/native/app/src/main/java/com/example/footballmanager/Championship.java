@@ -5,8 +5,10 @@ import androidx.annotation.NonNull;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class Championship {
+@SuppressWarnings("serial")
+public class Championship implements Serializable {
     private int totalMatches;
     private String trophy;
     private List<Team> teams = new ArrayList<>();
