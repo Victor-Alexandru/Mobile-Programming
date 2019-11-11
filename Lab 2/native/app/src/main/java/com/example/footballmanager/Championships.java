@@ -3,7 +3,6 @@ package com.example.footballmanager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,7 +10,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Championships extends AppCompatActivity {
 
@@ -19,7 +17,6 @@ public class Championships extends AppCompatActivity {
 
     private Button List;
     private Button Create;
-    private Button Delete;
     private ListView championshipsList;
     ChampionshipAdapter myChampionshipAdapter;
 
@@ -51,6 +48,8 @@ public class Championships extends AppCompatActivity {
     private void onInit() {
         Championship ch1 = new Championship(10, "Liga Studentilor UBB");
         Championship ch2 = new Championship(12, "Liga Studentilor UTCN");
+        ch1.addTeam(new Team("CFR", 8, 24));
+        ch1.addTeam(new Team("FCSB", 3, 12));
         championships.add(ch1);
         championships.add(ch2);
 //        for (int i = 12; i <= 18; i += 2) {
@@ -66,7 +65,7 @@ public class Championships extends AppCompatActivity {
         this.onInit();
         List = (Button) findViewById(R.id.btnList);
         Create = (Button) findViewById(R.id.btnCreate);
-        championshipsList = (ListView) findViewById(R.id.listViewChampionships);
+        championshipsList = (ListView) findViewById(R.id.listViewTeams);
         final EditText inputMatches = (EditText) findViewById(R.id.matchesInput);
         final EditText inputTrophy = (EditText) findViewById(R.id.trophyInput);
         myChampionshipAdapter = new ChampionshipAdapter(Championships.this, this.championships, inputMatches, inputTrophy);

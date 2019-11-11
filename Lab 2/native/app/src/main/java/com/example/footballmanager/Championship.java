@@ -11,7 +11,12 @@ import java.io.Serializable;
 public class Championship implements Serializable {
     private int totalMatches;
     private String trophy;
-    private List<Team> teams = new ArrayList<>();
+
+    public ArrayList<Team> getTeams() {
+        return teams;
+    }
+
+    private ArrayList<Team> teams = new ArrayList<>();
 
     public Championship(int tM, String trophy) {
         this.totalMatches = tM;
@@ -39,6 +44,7 @@ public class Championship implements Serializable {
         this.teams.add(t1);
 
     }
+
 
     @NonNull
     @Override
