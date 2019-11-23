@@ -18,7 +18,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pointsInput"
-        app:layout_goneMarginBottom="2dp" />
+        app:layout_goneMarginBottom="16dp"
+         />
 
     <EditText
         android:id="@+id/pointsInput"
