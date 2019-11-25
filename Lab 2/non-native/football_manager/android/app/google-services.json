@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "280346797931",
+    "firebase_url": "https://project-x-7892d.firebaseio.com",
+    "project_id": "project-x-7892d",
+    "storage_bucket": "project-x-7892d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280346797931:android:3d407f299c9ffdc707ce2e",
+        "android_client_info": {
+          "package_name": "com.example.football_manager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "280346797931-stfrilj2jflqdui13r2679o9b1uvn83m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsjywgzehdnH_K1GcVIljGeDPUH3_2uYc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "280346797931-stfrilj2jflqdui13r2679o9b1uvn83m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
