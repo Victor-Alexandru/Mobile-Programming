@@ -10,13 +10,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.Serializable;
+
+import io.realm.Realm;
+import io.realm.RealmObject;
+
 public class MainActivity extends AppCompatActivity {
     private EditText Name;
     private EditText Password;
     private TextView Info;
     private Button Login;
     private int counter = 5;
-
+      //Realm by lazy { Realm.getDefaultInstance() }
 
     @SuppressLint("SetTextI18n")
     @Override

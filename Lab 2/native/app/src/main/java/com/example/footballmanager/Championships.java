@@ -10,10 +10,14 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class Championships extends AppCompatActivity {
-
-    private ArrayList<Championship> championships = new ArrayList<>();
+    private Realm realm = Realm.getDefaultInstance();
+    private ArrayList championships = new ArrayList<>();
 
     private Button List;
     private Button Create;
@@ -48,15 +52,13 @@ public class Championships extends AppCompatActivity {
     private void onInit() {
         Championship ch1 = new Championship(10, "Liga Studentilor UBB");
         Championship ch2 = new Championship(12, "Liga Studentilor UTCN");
-        ch1.addTeam(new Team("CFR", 8, 24));
-        ch1.addTeam(new Team("FCSB", 3, 12));
-        championships.add(ch1);
-        championships.add(ch2);
-//        for (int i = 12; i <= 18; i += 2) {
-//            championships.add(new Championship(i, "Liga " + i));
-//        }
-//        System.out.println(championships.toString());
+
+        RealmResults<Championship> results = realm.where(Championship.class).findAll();
+        championships.addAll(results);
+
+
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +83,28 @@ public class Championships extends AppCompatActivity {
         Create.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String trophyName = inputTrophy.getText().toString();
-                String matchesNr = inputMatches.getText().toString();
+                final String trophyName = inputTrophy.getText().toString();
+                final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
 
-                    championships.add(new Championship(Integer.parseInt(matchesNr), trophyName));
+//                    championships.add(new Championship(Integer.parseInt(matchesNr), trophyName));
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            Number currentIdNum = realm.where(Championship.class).max("id");
+                            int nextId;
+                            if (currentIdNum != null) {
+                                nextId = currentIdNum.intValue() + 1;
+                            } else {
+                                nextId = 1;
+                            }
+                            Championship c1 = realm.createObject(Championship.class, nextId);
+                            c1.setTotalMatches(Integer.parseInt(matchesNr));
+                            c1.setTrophy(trophyName);
+                            championships.add(c1);
+                        }
+                    });
                     myChampionshipAdapter.notifyDataSetChanged();
                 } else {
                     Toast errorToast = Toast.makeText(Championships.this, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);

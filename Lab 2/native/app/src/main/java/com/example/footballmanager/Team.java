@@ -2,7 +2,24 @@ package com.example.footballmanager;
 
 import java.io.Serializable;
 
-public class Team  implements Serializable {
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
+
+@RealmClass
+public class Team  extends RealmObject {
+
+    public Team(){
+
+    }
+    @PrimaryKey
+    private  int id ;
+
+    private Championship championship;
+
+
+
     public String getName() {
         return name;
     }
@@ -39,4 +56,19 @@ public class Team  implements Serializable {
         this.points = points;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Championship getChampionship() {
+        return championship;
+    }
+
+    public void setChampionship(Championship c1) {
+        this.championship = c1;
+    }
 }

@@ -16,6 +16,8 @@ import android.widget.Toast;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+import io.realm.Realm;
+
 import static com.example.footballmanager.Championships.isInteger;
 
 public class ChampionshipAdapter extends BaseAdapter {
@@ -23,6 +25,7 @@ public class ChampionshipAdapter extends BaseAdapter {
     private ArrayList<Championship> championships = new ArrayList<>();
     private EditText inputMatches;
     private EditText inputTrophy;
+    private Realm realm = Realm.getDefaultInstance();
 
     public ChampionshipAdapter(Context context, ArrayList<Championship> championships, EditText e1, EditText e2) {
         this.mContext = context;
@@ -50,7 +53,7 @@ public class ChampionshipAdapter extends BaseAdapter {
 
     @SuppressLint("DefaultLocale")
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.listview_item, parent, false);
         }
@@ -63,26 +66,39 @@ public class ChampionshipAdapter extends BaseAdapter {
         Button btnPreview = (Button) convertView.findViewById(R.id.btnPreview);
 
 
-        tvTrophy.setText(tempChampionship.getTrophy());
-        tvMatches.setText(String.format("%d matches", tempChampionship.getTotalMatches()));
-
+        if (championships.get(position).isValid()) {
+            tvTrophy.setText(tempChampionship.getTrophy());
+            tvMatches.setText(String.format("%d matches", tempChampionship.getTotalMatches()));
+        }
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                championships.remove(tempChampionship);
-                notifyDataSetChanged();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        championships.remove(tempChampionship);
+                        tempChampionship.deleteFromRealm();
+                        notifyDataSetChanged();
+                    }
+                });
             }
         });
 
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String trophyName = inputTrophy.getText().toString();
-                String matchesNr = inputMatches.getText().toString();
+                final String trophyName = inputTrophy.getText().toString();
+                final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
-                    tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
-                    tempChampionship.setTrophy(trophyName);
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
+                            tempChampionship.setTrophy(trophyName);
+                            realm.insertOrUpdate(tempChampionship);
+                        }
+                    });
                     notifyDataSetChanged();
                 } else {
                     Toast errorToast = Toast.makeText(mContext, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
@@ -96,7 +112,7 @@ public class ChampionshipAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, Teams.class);
-                intent.putExtra("teamObject",tempChampionship);
+                intent.putExtra("id",tempChampionship.getId());
                 mContext.startActivity(intent);
             }
         });

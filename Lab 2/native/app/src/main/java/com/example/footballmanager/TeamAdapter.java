@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import io.realm.Realm;
+
 import static com.example.footballmanager.Championships.isInteger;
 
 public class TeamAdapter extends BaseAdapter {
@@ -23,7 +25,7 @@ public class TeamAdapter extends BaseAdapter {
     private EditText teamNameU;
     private EditText teamMatchesPlayed;
     private EditText pointsInput;
-
+    private Realm realm = Realm.getDefaultInstance();
 
     public TeamAdapter(Context context, ArrayList<Team> championships, EditText e1, EditText e2, EditText e3) {
         this.mContext = context;
@@ -73,25 +75,38 @@ public class TeamAdapter extends BaseAdapter {
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                teams.remove(tempTeam);
-                notifyDataSetChanged();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        teams.remove(tempTeam);
+                        tempTeam.deleteFromRealm();
+                        notifyDataSetChanged();
+                    }
+                });
             }
         });
 
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String inputTeam = teamNameU.getText().toString();
-                String teamMatchesPlayedInput = teamMatchesPlayed.getText().toString();
-                String pointsInputI = pointsInput.getText().toString();
+                final String inputTeam = teamNameU.getText().toString();
+                final String teamMatchesPlayedInput = teamMatchesPlayed.getText().toString();
+                final String pointsInputI = pointsInput.getText().toString();
 
                 boolean isInteger = isInteger(teamMatchesPlayedInput);
                 boolean isInteger2 = isInteger(pointsInputI);
                 if (!inputTeam.equals("") && !teamMatchesPlayedInput.equals("") && !pointsInputI.equals("") && isInteger && isInteger2) {
-                    tempTeam.setName(inputTeam);
-                    tempTeam.setMatchesPlayed(Integer.parseInt(teamMatchesPlayedInput));
-                    tempTeam.setPoints(Integer.parseInt(pointsInputI));
-                    notifyDataSetChanged();
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            tempTeam.setName(inputTeam);
+                            tempTeam.setMatchesPlayed(Integer.parseInt(teamMatchesPlayedInput));
+                            tempTeam.setPoints(Integer.parseInt(pointsInputI));
+                            realm.insertOrUpdate(tempTeam);
+                            notifyDataSetChanged();
+
+                        }
+                    });
                 } else {
                     Toast errorToast = Toast.makeText(mContext, "Inputs not be blank and points and matches integers", Toast.LENGTH_SHORT);
                     errorToast.show();
