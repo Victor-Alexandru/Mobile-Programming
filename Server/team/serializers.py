@@ -11,8 +11,8 @@ class ChampionshipSerializer(serializers.ModelSerializer):
 
 
 class TeamSerializer(serializers.ModelSerializer):
-    championship = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    championship_id = serializers.IntegerField()
 
     class Meta:
         model = Team
-        fields = ['id', 'name', 'matches_played', 'championship']
+        fields = ['id', 'name', 'matches_played', 'championship_id']
