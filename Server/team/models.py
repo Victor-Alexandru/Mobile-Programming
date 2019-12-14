@@ -10,4 +10,4 @@ class Championship(models.Model):
 class Team(models.Model):
     name = models.TextField(null=True, blank=True)
     matches_played = models.IntegerField()
-    championship = models.ForeignKey(Championship, on_delete=models.CASCADE)
+    championship = models.ForeignKey(Championship, on_delete=models.CASCADE, related_name="teams")
