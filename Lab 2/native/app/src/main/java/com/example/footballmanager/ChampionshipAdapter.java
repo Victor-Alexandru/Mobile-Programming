@@ -22,12 +22,12 @@ import static com.example.footballmanager.Championships.isInteger;
 
 public class ChampionshipAdapter extends BaseAdapter {
     private Context mContext;
-    private ArrayList<Championship> championships = new ArrayList<>();
+    private ArrayList<ChampionshipObject> championships;
     private EditText inputMatches;
     private EditText inputTrophy;
     private Realm realm = Realm.getDefaultInstance();
 
-    public ChampionshipAdapter(Context context, ArrayList<Championship> championships, EditText e1, EditText e2) {
+    public ChampionshipAdapter(Context context, ArrayList<ChampionshipObject> championships, EditText e1, EditText e2) {
         this.mContext = context;
         this.championships = championships;
         this.inputMatches = e1;
@@ -57,7 +57,7 @@ public class ChampionshipAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.listview_item, parent, false);
         }
-        final Championship tempChampionship = (Championship) getItem(position);
+        final ChampionshipObject tempChampionship = (ChampionshipObject) getItem(position);
 
         TextView tvTrophy = (TextView) convertView.findViewById(R.id.tvTrophy);
         TextView tvMatches = (TextView) convertView.findViewById(R.id.tvMatches);
@@ -70,19 +70,19 @@ public class ChampionshipAdapter extends BaseAdapter {
             tvTrophy.setText(tempChampionship.getTrophy());
             tvMatches.setText(String.format("%d matches", tempChampionship.getTotalMatches()));
         }
-        btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        championships.remove(tempChampionship);
-                        tempChampionship.deleteFromRealm();
-                        notifyDataSetChanged();
-                    }
-                });
-            }
-        });
+//        btnDelete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                realm.executeTransaction(new Realm.Transaction() {
+//                    @Override
+//                    public void execute(Realm realm) {
+//                        championships.remove(tempChampionship);
+//                        tempChampionship.deleteFromRealm();
+//                        notifyDataSetChanged();
+//                    }
+//                });
+//            }
+//        });
 
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,14 +91,14 @@ public class ChampionshipAdapter extends BaseAdapter {
                 final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
-                    realm.executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
-                            tempChampionship.setTrophy(trophyName);
-                            realm.insertOrUpdate(tempChampionship);
-                        }
-                    });
+//                    realm.executeTransaction(new Realm.Transaction() {
+//                        @Override
+//                        public void execute(Realm realm) {
+//                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
+//                            tempChampionship.setTrophy(trophyName);
+//                            realm.insertOrUpdate(tempChampionship);
+//                        }
+//                    });
                     notifyDataSetChanged();
                 } else {
                     Toast errorToast = Toast.makeText(mContext, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
@@ -108,14 +108,14 @@ public class ChampionshipAdapter extends BaseAdapter {
             }
         });
 
-        btnPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, Teams.class);
-                intent.putExtra("id",tempChampionship.getId());
-                mContext.startActivity(intent);
-            }
-        });
+//        btnPreview.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(mContext, Teams.class);
+//                intent.putExtra("id",tempChampionship.getId());
+//                mContext.startActivity(intent);
+//            }
+//        });
 
         return convertView;
     }
