@@ -6,6 +6,8 @@ public class ChampionshipObject {
 
     private int totalMatches;
 
+    private int id;
+
     private String trophy;
 
     public ChampionshipObject(int tM, String trophy) {
@@ -33,5 +35,13 @@ public class ChampionshipObject {
 
     public boolean isValid() {
         return true;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

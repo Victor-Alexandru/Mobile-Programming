@@ -14,16 +14,21 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Championships extends AppCompatActivity {
     //    private Realm realm = Realm.getDefaultInstance();
     private ArrayList<ChampionshipObject> championships = new ArrayList<ChampionshipObject>();
+    String url = "http://192.168.1.106:8000/team/championships/";
 
     private Button List;
     private Button Create;
@@ -65,8 +70,9 @@ public class Championships extends AppCompatActivity {
         championshipsList = (ListView) findViewById(R.id.listViewTeams);
         final EditText inputMatches = (EditText) findViewById(R.id.matchesInput);
         final EditText inputTrophy = (EditText) findViewById(R.id.trophyInput);
-        myChampionshipAdapter = new ChampionshipAdapter(Championships.this, this.championships, inputMatches, inputTrophy);
         mQueue = Volley.newRequestQueue(this);
+        myChampionshipAdapter = new ChampionshipAdapter(Championships.this, this.championships, inputMatches, inputTrophy, mQueue, url);
+        championshipsList.setAdapter(myChampionshipAdapter);
 
         List.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,26 +88,50 @@ public class Championships extends AppCompatActivity {
                 final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
-                    
 
-//                    championships.add(new Championship(Integer.parseInt(matchesNr), trophyName));
-//                    realm.executeTransaction(new Realm.Transaction() {
-//                        @Override
-//                        public void execute(Realm realm) {
-//                            Number currentIdNum = realm.where(Championship.class).max("id");
-//                            int nextId;
-//                            if (currentIdNum != null) {
-//                                nextId = currentIdNum.intValue() + 1;
-//                            } else {
-//                                nextId = 1;
-//                            }
-//                            Championship c1 = realm.createObject(Championship.class, nextId);
-//                            c1.setTotalMatches(Integer.parseInt(matchesNr));
-//                            c1.setTrophy(trophyName);
-//                            championships.add(c1);
-//                        }
-//                    });
-                    myChampionshipAdapter.notifyDataSetChanged();
+                    StringRequest postRequest = new StringRequest(Request.Method.POST, url,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    // response
+                                    String id = "";
+                                    JSONObject champObjJson = null;
+                                    try {
+                                        champObjJson = new JSONObject(response);
+                                        id = champObjJson.getString("id");
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    System.out.println("Accepted");
+                                    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                                    System.out.println(response);
+                                    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                                    ChampionshipObject c1 = new ChampionshipObject(Integer.parseInt(matchesNr), trophyName);
+                                    c1.setId(Integer.parseInt(id));
+                                    championships.add(c1);
+                                    myChampionshipAdapter.notifyDataSetChanged();
+
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // error
+                                    System.out.println("Refused");
+                                }
+                            }
+                    ) {
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("trophy", trophyName);
+                            params.put("total_matches", matchesNr);
+
+                            return params;
+                        }
+                    };
+                    mQueue.add(postRequest);
                 } else {
                     Toast errorToast = Toast.makeText(Championships.this, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
                     errorToast.show();
@@ -112,8 +142,6 @@ public class Championships extends AppCompatActivity {
     }
 
     public void fillListView() {
-        String url = "http://192.168.1.106:8000/team/championships/";
-//        String url = "http://api.myjson.com/bins/kp9wz";
 
         championships.clear();
 
@@ -121,12 +149,18 @@ public class Championships extends AppCompatActivity {
             @Override
             public void onResponse(JSONArray response) {
                 try {
+                    championships.clear();
+                    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&");
                     for (int i = 0; i < response.length(); i++) {
                         ChampionshipObject c1 = new ChampionshipObject(Integer.parseInt(response.getJSONObject(i).getString("total_matches")), response.getJSONObject(i).getString("trophy"));
+                        c1.setId(Integer.parseInt(response.getJSONObject(i).getString("id")));
                         championships.add(c1);
 
                     }
-                    System.out.println("----------------------------");
+                    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&");
+
+                    myChampionshipAdapter.notifyDataSetChanged();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -141,12 +175,6 @@ public class Championships extends AppCompatActivity {
             }
         });
         mQueue.add(request);
-        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-        System.out.println(championships.toString());
-        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-        myChampionshipAdapter.notifyDataSetChanged();
-        championshipsList.setAdapter(myChampionshipAdapter);
-
 
     }
 }

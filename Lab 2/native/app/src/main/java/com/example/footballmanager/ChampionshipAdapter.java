@@ -13,8 +13,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.Realm;
 
@@ -26,12 +34,17 @@ public class ChampionshipAdapter extends BaseAdapter {
     private EditText inputMatches;
     private EditText inputTrophy;
     private Realm realm = Realm.getDefaultInstance();
+    String url;
+    private RequestQueue mQueue;
 
-    public ChampionshipAdapter(Context context, ArrayList<ChampionshipObject> championships, EditText e1, EditText e2) {
+
+    public ChampionshipAdapter(Context context, ArrayList<ChampionshipObject> championships, EditText e1, EditText e2, RequestQueue q1, String ur) {
         this.mContext = context;
         this.championships = championships;
         this.inputMatches = e1;
         this.inputTrophy = e2;
+        this.mQueue = q1;
+        this.url = ur;
 
     }
 
@@ -70,19 +83,31 @@ public class ChampionshipAdapter extends BaseAdapter {
             tvTrophy.setText(tempChampionship.getTrophy());
             tvMatches.setText(String.format("%d matches", tempChampionship.getTotalMatches()));
         }
-//        btnDelete.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                realm.executeTransaction(new Realm.Transaction() {
-//                    @Override
-//                    public void execute(Realm realm) {
-//                        championships.remove(tempChampionship);
-//                        tempChampionship.deleteFromRealm();
-//                        notifyDataSetChanged();
-//                    }
-//                });
-//            }
-//        });
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String urlDelete = url + tempChampionship.getId() + "/";
+
+                StringRequest dr = new StringRequest(Request.Method.DELETE, urlDelete,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                // response
+                                championships.remove(tempChampionship);
+                                notifyDataSetChanged();
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // error.
+
+                            }
+                        }
+                );
+                mQueue.add(dr);
+            }
+        });
 
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,15 +116,41 @@ public class ChampionshipAdapter extends BaseAdapter {
                 final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
-//                    realm.executeTransaction(new Realm.Transaction() {
-//                        @Override
-//                        public void execute(Realm realm) {
-//                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
-//                            tempChampionship.setTrophy(trophyName);
-//                            realm.insertOrUpdate(tempChampionship);
-//                        }
-//                    });
-                    notifyDataSetChanged();
+                    String urlPut = url + tempChampionship.getId() + "/";
+                    StringRequest postRequest = new StringRequest(Request.Method.PUT, urlPut,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    // response
+                                    System.out.println("Accepted");
+                                    for (ChampionshipObject c : championships) {
+                                        if (c.getId() == tempChampionship.getId()) {
+                                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
+                                            tempChampionship.setTrophy(trophyName);
+                                        }
+                                    }
+                                    notifyDataSetChanged();
+
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // error
+                                    System.out.println("Refused");
+                                }
+                            }
+                    ) {
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("trophy", trophyName);
+                            params.put("total_matches", matchesNr);
+
+                            return params;
+                        }
+                    };
+                    mQueue.add(postRequest);
                 } else {
                     Toast errorToast = Toast.makeText(mContext, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
                     errorToast.show();
