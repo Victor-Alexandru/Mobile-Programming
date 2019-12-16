@@ -12,7 +12,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.Realm;
 
@@ -21,18 +29,21 @@ import static com.example.footballmanager.Championships.isInteger;
 public class TeamAdapter extends BaseAdapter {
 
     private Context mContext;
-    private ArrayList<Team> teams = new ArrayList<>();
+    private ArrayList<TeamObject> teams = new ArrayList<>();
     private EditText teamNameU;
     private EditText teamMatchesPlayed;
-    private EditText pointsInput;
-    private Realm realm = Realm.getDefaultInstance();
+    String url;
+    private RequestQueue mQueue;
+    private int champId;
 
-    public TeamAdapter(Context context, ArrayList<Team> championships, EditText e1, EditText e2, EditText e3) {
+    public TeamAdapter(Context context, ArrayList<TeamObject> championships, EditText e1, EditText e2, RequestQueue q1, String ur, Integer id) {
         this.mContext = context;
         this.teams = championships;
         this.teamNameU = e1;
         this.teamMatchesPlayed = e2;
-        this.pointsInput = e3;
+        this.mQueue = q1;
+        this.url = ur;
+        this.champId = id;
 
     }
 
@@ -59,30 +70,41 @@ public class TeamAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.listview_team_item, parent, false);
         }
 
-        final Team tempTeam = (Team) getItem(position);
+        final TeamObject tempTeam = (TeamObject) getItem(position);
 
         TextView matchesPlayed = (TextView) convertView.findViewById(R.id.matchesText);
-        TextView pointText = (TextView) convertView.findViewById(R.id.pointsText);
         TextView teamName = (TextView) convertView.findViewById(R.id.teamNameText);
         Button btnDelete = (Button) convertView.findViewById(R.id.btnTeamDelete);
         Button btnUpdate = (Button) convertView.findViewById(R.id.btnTeamUpdate);
 
 
         matchesPlayed.setText(String.valueOf(tempTeam.getMatchesPlayed()));
-        pointText.setText(String.valueOf(tempTeam.getPoints()));
         teamName.setText(tempTeam.getName());
 
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        teams.remove(tempTeam);
-                        tempTeam.deleteFromRealm();
-                        notifyDataSetChanged();
-                    }
-                });
+
+                String urlDelete = url + tempTeam.getId() + "/";
+
+                StringRequest dr = new StringRequest(Request.Method.DELETE, urlDelete,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                // response
+                                teams.remove(tempTeam);
+                                notifyDataSetChanged();
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // error.
+
+                            }
+                        }
+                );
+                mQueue.add(dr);
             }
         });
 
@@ -91,22 +113,45 @@ public class TeamAdapter extends BaseAdapter {
             public void onClick(View v) {
                 final String inputTeam = teamNameU.getText().toString();
                 final String teamMatchesPlayedInput = teamMatchesPlayed.getText().toString();
-                final String pointsInputI = pointsInput.getText().toString();
 
                 boolean isInteger = isInteger(teamMatchesPlayedInput);
-                boolean isInteger2 = isInteger(pointsInputI);
-                if (!inputTeam.equals("") && !teamMatchesPlayedInput.equals("") && !pointsInputI.equals("") && isInteger && isInteger2) {
-                    realm.executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            tempTeam.setName(inputTeam);
-                            tempTeam.setMatchesPlayed(Integer.parseInt(teamMatchesPlayedInput));
-                            tempTeam.setPoints(Integer.parseInt(pointsInputI));
-                            realm.insertOrUpdate(tempTeam);
-                            notifyDataSetChanged();
+                if (!inputTeam.equals("") && !teamMatchesPlayedInput.equals("") && isInteger) {
+                    String urlPut = url + tempTeam.getId() + "/?championship_id=" + champId;
+                    StringRequest postRequest = new StringRequest(Request.Method.PUT, urlPut,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    // response
+                                    System.out.println("Accepted");
+                                    for (TeamObject c : teams) {
+                                        if (c.getId() == tempTeam.getId()) {
+                                            tempTeam.setMatchesPlayed(Integer.parseInt(teamMatchesPlayedInput));
+                                            tempTeam.setName(inputTeam);
+                                        }
+                                    }
+                                    notifyDataSetChanged();
 
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // error
+                                    System.out.println("Refused");
+                                }
+                            }
+                    ) {
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("name", inputTeam);
+                            params.put("matches_played", teamMatchesPlayedInput);
+                            params.put("championship_id", String.valueOf(champId));
+
+                            return params;
                         }
-                    });
+                    };
+                    mQueue.add(postRequest);
                 } else {
                     Toast errorToast = Toast.makeText(mContext, "Inputs not be blank and points and matches integers", Toast.LENGTH_SHORT);
                     errorToast.show();

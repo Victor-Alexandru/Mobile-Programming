@@ -3,6 +3,8 @@ package com.example.footballmanager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +38,13 @@ public class ChampionshipAdapter extends BaseAdapter {
     private Realm realm = Realm.getDefaultInstance();
     String url;
     private RequestQueue mQueue;
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
 
     public ChampionshipAdapter(Context context, ArrayList<ChampionshipObject> championships, EditText e1, EditText e2, RequestQueue q1, String ur) {
@@ -86,87 +95,103 @@ public class ChampionshipAdapter extends BaseAdapter {
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String urlDelete = url + tempChampionship.getId() + "/";
+                if (isNetworkAvailable()) {
+                    String urlDelete = url + tempChampionship.getId() + "/";
 
-                StringRequest dr = new StringRequest(Request.Method.DELETE, urlDelete,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                // response
-                                championships.remove(tempChampionship);
-                                notifyDataSetChanged();
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                // error.
+                    StringRequest dr = new StringRequest(Request.Method.DELETE, urlDelete,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    // response
+                                    championships.remove(tempChampionship);
+                                    notifyDataSetChanged();
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // error.
 
+                                }
                             }
-                        }
-                );
-                mQueue.add(dr);
+                    );
+                    mQueue.add(dr);
+                } else {
+                    Toast errorToast = Toast.makeText(mContext, "Delete is off when no network", Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
             }
         });
 
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String trophyName = inputTrophy.getText().toString();
-                final String matchesNr = inputMatches.getText().toString();
-                boolean isInteger = isInteger(matchesNr);
-                if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
-                    String urlPut = url + tempChampionship.getId() + "/";
-                    StringRequest postRequest = new StringRequest(Request.Method.PUT, urlPut,
-                            new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    // response
-                                    System.out.println("Accepted");
-                                    for (ChampionshipObject c : championships) {
-                                        if (c.getId() == tempChampionship.getId()) {
-                                            tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
-                                            tempChampionship.setTrophy(trophyName);
+                if (isNetworkAvailable()) {
+                    final String trophyName = inputTrophy.getText().toString();
+                    final String matchesNr = inputMatches.getText().toString();
+                    boolean isInteger = isInteger(matchesNr);
+                    if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
+                        String urlPut = url + tempChampionship.getId() + "/";
+                        StringRequest postRequest = new StringRequest(Request.Method.PUT, urlPut,
+                                new Response.Listener<String>() {
+                                    @Override
+                                    public void onResponse(String response) {
+                                        // response
+                                        System.out.println("Accepted");
+                                        for (ChampionshipObject c : championships) {
+                                            if (c.getId() == tempChampionship.getId()) {
+                                                tempChampionship.setTotalMatches(Integer.parseInt(matchesNr));
+                                                tempChampionship.setTrophy(trophyName);
+                                            }
                                         }
+                                        notifyDataSetChanged();
+
                                     }
-                                    notifyDataSetChanged();
+                                },
+                                new Response.ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(VolleyError error) {
+                                        // error
+                                        System.out.println("Refused");
+                                    }
+                                }
+                        ) {
+                            @Override
+                            protected Map<String, String> getParams() {
+                                Map<String, String> params = new HashMap<String, String>();
+                                params.put("trophy", trophyName);
+                                params.put("total_matches", matchesNr);
 
-                                }
-                            },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    // error
-                                    System.out.println("Refused");
-                                }
+                                return params;
                             }
-                    ) {
-                        @Override
-                        protected Map<String, String> getParams() {
-                            Map<String, String> params = new HashMap<String, String>();
-                            params.put("trophy", trophyName);
-                            params.put("total_matches", matchesNr);
-
-                            return params;
-                        }
-                    };
-                    mQueue.add(postRequest);
+                        };
+                        mQueue.add(postRequest);
+                    } else {
+                        Toast errorToast = Toast.makeText(mContext, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
+                        errorToast.show();
+                    }
                 } else {
-                    Toast errorToast = Toast.makeText(mContext, "Trophy and Nr of matches must not be blank and nr of matches must be an int", Toast.LENGTH_SHORT);
+                    Toast errorToast = Toast.makeText(mContext, "Update is off when no network", Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
+
 
             }
         });
 
-//        btnPreview.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(mContext, Teams.class);
-//                intent.putExtra("id",tempChampionship.getId());
-//                mContext.startActivity(intent);
-//            }
-//        });
+        btnPreview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isNetworkAvailable()) {
+                    Intent intent = new Intent(mContext, Teams.class);
+                    intent.putExtra("id", tempChampionship.getId());
+                    mContext.startActivity(intent);
+                }else{
+                    Toast errorToast = Toast.makeText(mContext, "Preview disabled ", Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
+            }
+        });
 
         return convertView;
     }

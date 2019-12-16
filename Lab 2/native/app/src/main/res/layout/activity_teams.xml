@@ -12,30 +12,12 @@
         android:layout_height="384dp"
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
-        android:layout_marginTop="44dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pointsInput"
-        app:layout_goneMarginBottom="16dp"
-         />
-
-    <EditText
-        android:id="@+id/pointsInput"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:ems="10"
-        android:hint="Points"
-        android:inputType="textPersonName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/teamMatchesPlayed" />
+        app:layout_constraintTop_toBottomOf="@+id/teamMatchesPlayed"
+        app:layout_goneMarginBottom="16dp" />
 
     <EditText
         android:id="@+id/teamMatchesPlayed"
