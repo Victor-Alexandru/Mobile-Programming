@@ -82,6 +82,7 @@ public class Championships extends AppCompatActivity {
                 final String matchesNr = inputMatches.getText().toString();
                 boolean isInteger = isInteger(matchesNr);
                 if (!trophyName.equals("") && !matchesNr.equals("") && isInteger) {
+                    
 
 //                    championships.add(new Championship(Integer.parseInt(matchesNr), trophyName));
 //                    realm.executeTransaction(new Realm.Transaction() {
