@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:football_pc/model/nodo_item.dart';
 
 //import 'package:football_manager/ui/teamScreen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
 
 class API {
@@ -19,6 +20,16 @@ class ChampionshipsScreen extends StatefulWidget {
 }
 
 class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
+  Future<bool> check() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile) {
+      return true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    }
+    return false;
+  }
+
   var championships = new List<ChampionshipItem>();
 
   final TextEditingController _textEditingController =
@@ -28,7 +39,19 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
 
   final String url = 'http://192.168.1.106:8000/team/championships/';
 
-  _getChampionships() {
+  _getChampionships() async {
+    championships.forEach((elem) async {
+      if (elem.id == -250) {
+        Map<String, String> headers = {"Content-type": "application/json"};
+        String jsonDict = '{"total_matches":"' +
+            elem.totalMatches +
+            '" , "trophy": "' +
+            elem.trophy +
+            '"}';
+        // make POST request
+        await post(url, headers: headers, body: jsonDict);
+      }
+    });
     API.getChampionships().then((response) {
       setState(() {
         Iterable list = json.decode(response.body);
@@ -73,40 +96,94 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
           child: new ListTile(
             title: new Icon(Icons.add),
           ),
-          onPressed: _getChampionships),
+          onPressed: _showFormDialog),
     );
   }
 
   _delete(int id, int index) async {
-    print(id);
-    String deleteUrl = this.url + id.toString() + "/";
-    Response response = await delete(deleteUrl);
-    if (response.statusCode == 204) {
-      // TODO: eliminare din lista de championships
-      //eliminare din lista
+    check().then((intenet) async {
+      if (intenet != null && intenet) {
+        // Internet Present Case
+        String deleteUrl = this.url + id.toString() + "/";
+        Response response = await delete(deleteUrl);
+        if (response.statusCode == 204) {
+          // TODO: eliminare din lista de championships
+          //eliminare din lista
 //      this.championships.clear();
-      setState(() {
-        this.championships.removeAt(index);
-      });
+          setState(() {
+            this.championships.removeAt(index);
+          });
 
-      print("delete a avut succcess");
-    }
+          print("delete a avut succcess");
+        }
+      } else {
+        Fluttertoast.showToast(
+            msg: "Delete unavailable with no internet",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIos: 2,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+      // No-Internet Case
+    });
   }
 
   _handleSubmitted(String text, String textTwo) async {
     var c = new ChampionshipItem(text, textTwo);
-//    ChampionshipItem saved = await this.databaseHelper.insertC(c);
-//    if (saved != null) {
-//      setState(() => this._list.add(c));
-//      _textEditingController.clear();
-//      _textEditingControllerTM.clear();
-//      Navigator.pop(context);
-//    }
+    check().then((intenet) async {
+      if (intenet != null && intenet) {
+        Map<String, String> headers = {"Content-type": "application/json"};
+        String jsonDict = '{"total_matches":"' +
+            _textEditingControllerTM.text +
+            '" , "trophy": "' +
+            _textEditingController.text +
+            '"}';
+        // make POST request
+        Response response = await post(url, headers: headers, body: jsonDict);
+        // check the status code for the result
+        int statusCode = response.statusCode;
+        print("&&&&&&&&&&&&");
+        final Map parsed = json.decode(response.body.toString());
+        c.id = parsed['id'];
+
+        print(statusCode);
+        if (statusCode == 201) {
+          setState(() => this.championships.add(c));
+          _textEditingController.clear();
+          _textEditingControllerTM.clear();
+
+          Navigator.pop(context);
+        }
+      } else {
+        Fluttertoast.showToast(
+            msg: "Added in local db",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIos: 2,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
+        c.id = -250;
+        setState(() => this.championships.add(c));
+        _textEditingController.clear();
+        _textEditingControllerTM.clear();
+        Navigator.pop(context);
+      }
+    });
   }
 
   void _showFormDialog() {
+    check().then((intenet) async {
+      if (intenet != null && intenet) {
+        this._getChampionships();
+      }
+    });
+
     _textEditingController.clear();
     _textEditingControllerTM.clear();
+
     var alert = new AlertDialog(
       content: new Row(
         children: <Widget>[
@@ -153,77 +230,91 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
   }
 
   _update(ChampionshipItem c, int index) {
-    String putUrl = this.url + c.id.toString() + "/";
-    _textEditingControllerTM.text = c.totalMatches;
-    _textEditingController.text = c.trophy;
-    Map<String, String> headers = {"Content-type": "application/json"};
+    check().then((intenet) async {
+      if (intenet != null && intenet) {
+        String putUrl = this.url + c.id.toString() + "/";
+        _textEditingControllerTM.text = c.totalMatches;
+        _textEditingController.text = c.trophy;
+        Map<String, String> headers = {"Content-type": "application/json"};
 
-    var alert = new AlertDialog(
-      content: new Row(
-        children: <Widget>[
-          new Expanded(
-              child: new TextField(
-            controller: _textEditingController,
-            autofocus: true,
-            decoration: new InputDecoration(
-              labelText: "Trophy",
-              hintText: "not blank",
-            ),
-          )),
-          new Expanded(
-              child: new TextField(
-            controller: _textEditingControllerTM,
-            autofocus: true,
-            decoration: new InputDecoration(
-              labelText: "Total Matches",
-              hintText: "not blank",
-            ),
-          )),
-        ],
-      ),
-      actions: <Widget>[
-        new FlatButton(
-            onPressed: () async {
-              if (_textEditingController.text != "" &&
-                  _textEditingControllerTM.text != "") {
-                String json = '{"total_matches":"' +
-                    _textEditingControllerTM.text +
-                    '" , "trophy": "' +
-                    _textEditingController.text +
-                    '"}';
-                Response response =
-                    await put(putUrl, headers: headers, body: json);
-                // check the status code for the result
-                int statusCode = response.statusCode;
-                if (statusCode == 200) {
-                  setState(() {
-                    var c1 = new ChampionshipItem(_textEditingController.text,
-                        _textEditingControllerTM.text);
-                    c1.id = c.id;
-                    setState(() {
-                      championships[index] = c1;
-                    });
+        var alert = new AlertDialog(
+          content: new Row(
+            children: <Widget>[
+              new Expanded(
+                  child: new TextField(
+                controller: _textEditingController,
+                autofocus: true,
+                decoration: new InputDecoration(
+                  labelText: "Trophy",
+                  hintText: "not blank",
+                ),
+              )),
+              new Expanded(
+                  child: new TextField(
+                controller: _textEditingControllerTM,
+                autofocus: true,
+                decoration: new InputDecoration(
+                  labelText: "Total Matches",
+                  hintText: "not blank",
+                ),
+              )),
+            ],
+          ),
+          actions: <Widget>[
+            new FlatButton(
+                onPressed: () async {
+                  if (_textEditingController.text != "" &&
+                      _textEditingControllerTM.text != "") {
+                    String json = '{"total_matches":"' +
+                        _textEditingControllerTM.text +
+                        '" , "trophy": "' +
+                        _textEditingController.text +
+                        '"}';
+                    Response response =
+                        await put(putUrl, headers: headers, body: json);
+                    // check the status code for the result
+                    int statusCode = response.statusCode;
+                    if (statusCode == 200) {
+                      setState(() {
+                        var c1 = new ChampionshipItem(
+                            _textEditingController.text,
+                            _textEditingControllerTM.text);
+                        c1.id = c.id;
+                        setState(() {
+                          championships[index] = c1;
+                        });
 //                    this._getChampionships();
 
-                    print("&&&&&&&&&&&&&&&&&&&&");
-                  });
-                  //TODO ramane de updatat lista
-                  print("Put cu success");
+                        print("&&&&&&&&&&&&&&&&&&&&");
+                      });
+                      //TODO ramane de updatat lista
+                      print("Put cu success");
 
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: Text("Save")),
-        new FlatButton(
-            onPressed: () => {Navigator.pop(context)},
-            child: new Text("Cancel")),
-      ],
-    );
-    showDialog(
-        context: context,
-        builder: (_) {
-          return alert;
-        });
+                      Navigator.pop(context);
+                    }
+                  }
+                },
+                child: Text("Save")),
+            new FlatButton(
+                onPressed: () => {Navigator.pop(context)},
+                child: new Text("Cancel")),
+          ],
+        );
+        showDialog(
+            context: context,
+            builder: (_) {
+              return alert;
+            });
+      } else {
+        Fluttertoast.showToast(
+            msg: "Update unavailable with no internet",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIos: 2,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    });
   }
 }
