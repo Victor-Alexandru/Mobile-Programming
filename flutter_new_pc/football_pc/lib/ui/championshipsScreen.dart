@@ -6,6 +6,13 @@ import 'package:football_pc/model/nodo_item.dart';
 //import 'package:football_manager/ui/teamScreen.dart';
 import 'package:http/http.dart';
 
+class API {
+  static Future getChampionships() {
+    var url = "http://192.168.1.106:8000/team/championships/";
+    return get(url);
+  }
+}
+
 class ChampionshipsScreen extends StatefulWidget {
   @override
   _ChampionshipsScreenState createState() => new _ChampionshipsScreenState();
@@ -75,10 +82,25 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
     return items;
   }
 
+  var championships = new List<ChampionshipItem>();
+
+  _getChampionships() {
+    API.getChampionships().then((response) {
+      setState(() {
+        Iterable list = json.decode(response.body);
+        championships =
+            list.map((model) => ChampionshipItem.fromJson(model)).toList();
+        print("-----------------------------------");
+        print(championships.toString());
+        print("-----------------------------------");
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    //    _makeGetRequest();
+    _getChampionships();
   }
 
   @override
@@ -86,45 +108,32 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
     // TODO: implement build
     return new Scaffold(
       backgroundColor: Colors.black87,
-      body: listWidget()
-//      new Column(
-//        children: <Widget>[
-//          new Flexible(
-//              child: new ListView.builder(
-//                  padding: new EdgeInsets.all(8.0),
-//                  reverse: false,
-//                  itemCount: _list.length,
-//                  itemBuilder: (_, int index) {
-//                    return new Card(
-//                      color: Colors.white10,
-//                      child: new ListTile(
-//                        title: _list[index],
-//                        onTap: () => this._update(_list[index], index),
-//                        trailing: new Listener(
-//                          key: new Key(_list[index].trophy),
-//                          child:
-//                              new Icon(Icons.remove_circle, color: Colors.red),
-//                          onPointerDown: (pointerEvent) =>
-//                              this._delete(_list[index].id, index),
-//                        ),
-//                      ),
-//                    );
-//                  })
-//          ),
-//          new Divider(
-//            height: 1.0,
-//          )
-//        ],
-//      ),
-      ,
+      body: new ListView.builder(
+        itemCount: championships.length,
+        itemBuilder: (context, index) {
+          ChampionshipItem c1 = championships[index];
+          return new Card(
+            color: Colors.white10,
+            child: new ListTile(
+              title: championships[index],
+              onTap: () => this._update(championships[index], index),
+              trailing: new Listener(
+                key: new Key(championships[index].trophy),
+                child: new Icon(Icons.remove_circle, color: Colors.red),
+                onPointerDown: (pointerEvent) =>
+                    this._delete(_list[index].id, index),
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: new FloatingActionButton(
           tooltip: "Add Item",
           backgroundColor: Colors.redAccent,
           child: new ListTile(
             title: new Icon(Icons.add),
           ),
-          onPressed: getList
-      ),
+          onPressed: _getChampionships ),
     );
   }
 
