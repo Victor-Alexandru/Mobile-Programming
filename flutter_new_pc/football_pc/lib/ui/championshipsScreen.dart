@@ -19,70 +19,14 @@ class ChampionshipsScreen extends StatefulWidget {
 }
 
 class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
+  var championships = new List<ChampionshipItem>();
+
   final TextEditingController _textEditingController =
       new TextEditingController();
   final TextEditingController _textEditingControllerTM =
       new TextEditingController();
 
   final String url = 'http://192.168.1.106:8000/team/championships/';
-  List<ChampionshipItem> _list = <ChampionshipItem>[];
-  int i = 0;
-
-  Widget listWidget() {
-    return FutureBuilder(
-      builder: (context, championships) {
-        if (championships.connectionState == ConnectionState.none &&
-            championships.hasData == null) {
-          //print('project snapshot data is: ${projectSnap.data}');
-          return Container();
-        }
-        return ListView.builder(
-          itemCount: championships.data.length,
-          itemBuilder: (context, index) {
-            ChampionshipItem c1 = championships.data[index];
-            return new Card(
-              color: Colors.white10,
-              child: new ListTile(
-                title: _list[index],
-                onTap: () => this._update(_list[index], index),
-                trailing: new Listener(
-                  key: new Key(_list[index].trophy),
-                  child: new Icon(Icons.remove_circle, color: Colors.red),
-                  onPointerDown: (pointerEvent) =>
-                      this._delete(_list[index].id, index),
-                ),
-              ),
-            );
-          },
-        );
-      },
-      future: getList(),
-    );
-  }
-
-  Future<List<ChampionshipItem>> _makeGetRequest() async {
-    this._list.clear();
-    print(i);
-    this.i++;
-    // make GET request
-    Response response = await get(this.url);
-    // sample info available in response
-    List<dynamic> list = json.decode(response.body);
-    // TODO convert json to object...
-    list.forEach((item) {
-      ChampionshipItem c = ChampionshipItem.fromJson(item);
-      this._list.add(c);
-    });
-    return this._list;
-  }
-
-  Future getList() async {
-    List<ChampionshipItem> items = await _makeGetRequest();
-    print(items);
-    return items;
-  }
-
-  var championships = new List<ChampionshipItem>();
 
   _getChampionships() {
     API.getChampionships().then((response) {
@@ -90,9 +34,6 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
         Iterable list = json.decode(response.body);
         championships =
             list.map((model) => ChampionshipItem.fromJson(model)).toList();
-        print("-----------------------------------");
-        print(championships.toString());
-        print("-----------------------------------");
       });
     });
   }
@@ -118,10 +59,9 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
               title: championships[index],
               onTap: () => this._update(championships[index], index),
               trailing: new Listener(
-                key: new Key(championships[index].trophy),
+                key: new Key(championships[index].id.toString()),
                 child: new Icon(Icons.remove_circle, color: Colors.red),
-                onPointerDown: (pointerEvent) =>
-                    this._delete(_list[index].id, index),
+                onPointerDown: (pointerEvent) => this._delete(c1.id, index),
               ),
             ),
           );
@@ -133,17 +73,24 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
           child: new ListTile(
             title: new Icon(Icons.add),
           ),
-          onPressed: _getChampionships ),
+          onPressed: _getChampionships),
     );
   }
 
   _delete(int id, int index) async {
-//    var removed = await databaseHelper.delete(id);
-//    if (removed != null) {
-//      setState(() {
-//        _list.removeAt(index);
-//      });
-//    }
+    print(id);
+    String deleteUrl = this.url + id.toString() + "/";
+    Response response = await delete(deleteUrl);
+    if (response.statusCode == 204) {
+      // TODO: eliminare din lista de championships
+      //eliminare din lista
+//      this.championships.clear();
+      setState(() {
+        this.championships.removeAt(index);
+      });
+
+      print("delete a avut succcess");
+    }
   }
 
   _handleSubmitted(String text, String textTwo) async {
@@ -206,8 +153,11 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
   }
 
   _update(ChampionshipItem c, int index) {
+    String putUrl = this.url + c.id.toString() + "/";
     _textEditingControllerTM.text = c.totalMatches;
     _textEditingController.text = c.trophy;
+    Map<String, String> headers = {"Content-type": "application/json"};
+
     var alert = new AlertDialog(
       content: new Row(
         children: <Widget>[
@@ -233,27 +183,41 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
       ),
       actions: <Widget>[
         new FlatButton(
-            onPressed: () {
+            onPressed: () async {
               if (_textEditingController.text != "" &&
                   _textEditingControllerTM.text != "") {
-                _handleUpdate(c, index, _textEditingController.text,
-                    _textEditingControllerTM.text);
+                String json = '{"total_matches":"' +
+                    _textEditingControllerTM.text +
+                    '" , "trophy": "' +
+                    _textEditingController.text +
+                    '"}';
+                Response response =
+                    await put(putUrl, headers: headers, body: json);
+                // check the status code for the result
+                int statusCode = response.statusCode;
+                if (statusCode == 200) {
+                  setState(() {
+                    var c1 = new ChampionshipItem(_textEditingController.text,
+                        _textEditingControllerTM.text);
+                    c1.id = c.id;
+                    setState(() {
+                      championships[index] = c1;
+                    });
+//                    this._getChampionships();
+
+                    print("&&&&&&&&&&&&&&&&&&&&");
+                  });
+                  //TODO ramane de updatat lista
+                  print("Put cu success");
+
+                  Navigator.pop(context);
+                }
               }
             },
             child: Text("Save")),
         new FlatButton(
             onPressed: () => {Navigator.pop(context)},
             child: new Text("Cancel")),
-        new FlatButton(
-            onPressed: () => {
-//                  Navigator.pop(context),
-//                  Navigator.push(
-//                    context,
-//                    MaterialPageRoute(
-//                        builder: (context) => TeamScreen(championshipId: c.id)),
-//                  )
-                },
-            child: new Text("Go to teams"))
       ],
     );
     showDialog(
@@ -261,19 +225,5 @@ class _ChampionshipsScreenState extends State<ChampionshipsScreen> {
         builder: (_) {
           return alert;
         });
-  }
-
-  _handleUpdate(ChampionshipItem c, int index, String t1, String t2) async {
-//    var c1 = new ChampionshipItem(t1, t2);
-//    c1.id = c.id;
-//    var result = await databaseHelper.update(c1);
-//    setState(() {
-//      if (result != null) {
-//        _list[index] = c1;
-//      }
-//    });
-//    _textEditingController.clear();
-//    _textEditingControllerTM.clear();
-//    Navigator.pop(context);
   }
 }
