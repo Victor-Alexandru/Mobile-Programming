@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:exam_24_b/pages/clerk.dart';
+import 'package:exam_24_b/pages/clientPage.dart';
 import 'package:flutter/material.dart';
 
 class SelectionPage extends StatelessWidget {
@@ -16,7 +17,10 @@ class SelectionPage extends StatelessWidget {
               height: 100,
             ),
             FlatButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ClientPage()));
+              },
               child: Text(
                 "Client",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),

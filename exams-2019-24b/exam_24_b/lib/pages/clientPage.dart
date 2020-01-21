@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:exam_24_b/API/GenreApi.dart';
+import 'package:exam_24_b/pages/genreSongPage.dart';
 import 'package:flutter/material.dart';
 
-class ClientkPage extends StatelessWidget {
+class ClientPage extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -34,12 +35,10 @@ class _ClientPageAppState extends State<ClientPageApp> {
   Widget GenreCell(BuildContext ctx, int index) {
     return GestureDetector(
       onTap: () {
-        // final snackBar = SnackBar(content: Text("Tap"));
-        // Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //         builder: (context) => ChampionshipDetailPage(
-        //             championships[index], url, championships, index)));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => GenreSongPage(genres[index])));
       },
       child: Card(
           margin: EdgeInsets.all(8),
@@ -94,11 +93,17 @@ class _ClientPageAppState extends State<ClientPageApp> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _getGenres();
+  }
   _getGenres() {
     GenreAPI.getGenres(url).then((response) {
       setState(() {
         print(response.body);
         Iterable list = json.decode(response.body);
+        this.genres.clear();
         list.forEach((e) {
           this.genres.add(e);
         });
