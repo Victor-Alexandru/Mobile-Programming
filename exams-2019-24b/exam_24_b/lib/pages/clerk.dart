@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 
 class ClerkPage extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,6 +30,7 @@ class ClerkPageApp extends StatefulWidget {
 
 class _ClerkPageAppState extends State<ClerkPageApp> {
   List<Song> songs = new List<Song>();
+  List<String> _logs = new List<String>();
 
   // final _formKey = GlobalKey<FormState>();
   // String _input_total_matches;
@@ -290,11 +292,16 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   _deleteReq(id) async {
     String url = 'http://192.168.1.104:2224/song' + '/' + id.toString();
     Response response = await SongAPI.makeDeleteRequest(url);
-    if (response.statusCode == 204) {
+    print(_logs.toString());
+    if (response.statusCode == 200) {
+      _logs.add('Success delete' + response.statusCode.toString());
+    } else {
+      final Map parsed = json.decode(response.body.toString());
+      _logs.add('Bad code ' + response.statusCode.toString() + parsed['text']);
+    }
+    if (response.statusCode == 200) {
       setState(() {
-        // replytile.removeWhere((item) => item.id == '001')
-        songs.removeWhere((a) => a.id = id);
-        Navigator.pop(context);
+        songs.removeWhere((a) => a.id == int.parse(id));
       });
     }
   }
