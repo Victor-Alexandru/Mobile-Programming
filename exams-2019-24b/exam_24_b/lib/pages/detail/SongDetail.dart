@@ -4,22 +4,30 @@ import 'package:flutter/material.dart';
 
 class SongDetailPage extends StatefulWidget {
   Song _song;
+  List<Song> _favorites;
 
-  SongDetailPage(Song song) {
+  SongDetailPage(Song song, List<Song> favorites) {
     _song = song;
+    _favorites = favorites;
   }
 
   @override
-  _SongDetailPageState createState() => _SongDetailPageState(_song);
+  _SongDetailPageState createState() => _SongDetailPageState(_song, _favorites);
 }
 
 class _SongDetailPageState extends State<SongDetailPage> {
   Song _song;
+  List<Song> _favorites;
 
-  _SongDetailPageState(Song song) {
+  _SongDetailPageState(Song song, List<Song> favorites) {
     _song = song;
+    _favorites = favorites;
   }
-  _addFav() {}
+  _addFav() {
+    setState(() {
+      _favorites.add(this._song);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

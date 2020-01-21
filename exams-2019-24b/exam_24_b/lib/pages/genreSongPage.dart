@@ -7,21 +7,25 @@ import 'package:flutter/material.dart';
 
 class GenreSongPage extends StatefulWidget {
   String _genre;
+  List<Song> _favorites;
 
-  GenreSongPage(String genre) {
+  GenreSongPage(String genre, List<Song> favorites) {
     _genre = genre;
+    this._favorites = favorites;
   }
 
   @override
-  _GenreSongPageState createState() => _GenreSongPageState(_genre);
+  _GenreSongPageState createState() => _GenreSongPageState(_genre, _favorites);
 }
 
 class _GenreSongPageState extends State<GenreSongPage> {
   String _genre;
   String _url;
   List<Song> songs = new List<Song>();
+  List<Song> _favorites;
 
-  _GenreSongPageState(String genre) {
+  _GenreSongPageState(String genre, List<Song> favorites) {
+    _favorites = favorites;
     _genre = genre;
     _url = 'http://192.168.1.104:2224/songs/' + genre;
   }
@@ -58,8 +62,7 @@ class _GenreSongPageState extends State<GenreSongPage> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => SongDetailPage(
-                    songs[index])));
+                builder: (context) => SongDetailPage(songs[index], _favorites)));
       },
       child: Card(
           margin: EdgeInsets.all(8),

@@ -1,11 +1,17 @@
 import 'dart:convert';
 
 import 'package:exam_24_b/API/GenreApi.dart';
+import 'package:exam_24_b/model/song.dart';
 import 'package:exam_24_b/pages/genreSongPage.dart';
 import 'package:flutter/material.dart';
 
 class ClientPage extends StatelessWidget {
   // This widget is the root of your application.
+  List<Song> favorites;
+
+  ClientPage(List<Song> favorites) {
+    this.favorites = favorites;
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,23 +19,31 @@ class ClientPage extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      home: ClientPageApp(title: 'Client Page'),
+      home: ClientPageApp('Client Page', favorites),
     );
   }
 }
 
 class ClientPageApp extends StatefulWidget {
-  ClientPageApp({Key key, this.title}) : super(key: key);
+  ClientPageApp(String title, List<Song> favorites) {
+    this.title = title;
+    this.favorites = favorites;
+  }
 
-  final String title;
+  List<Song> favorites;
+  String title;
 
   @override
-  _ClientPageAppState createState() => _ClientPageAppState();
+  _ClientPageAppState createState() => _ClientPageAppState(favorites);
 }
 
 class _ClientPageAppState extends State<ClientPageApp> {
   List<String> genres = new List<String>();
+  List<Song> favorites;
 
+  _ClientPageAppState(List<Song> favorites) {
+    this.favorites = favorites;
+  }
   final String url = "http://192.168.1.104:2224/genres";
 
   Widget GenreCell(BuildContext ctx, int index) {
@@ -38,7 +52,8 @@ class _ClientPageAppState extends State<ClientPageApp> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => GenreSongPage(genres[index])));
+                builder: (context) =>
+                    GenreSongPage(genres[index], this.favorites)));
       },
       child: Card(
           margin: EdgeInsets.all(8),
@@ -98,6 +113,7 @@ class _ClientPageAppState extends State<ClientPageApp> {
     super.initState();
     _getGenres();
   }
+
   _getGenres() {
     GenreAPI.getGenres(url).then((response) {
       setState(() {
