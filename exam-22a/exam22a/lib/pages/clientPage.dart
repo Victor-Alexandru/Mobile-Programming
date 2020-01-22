@@ -1,14 +1,19 @@
 import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:exam22a/api/modelApi.dart';
 import 'package:exam22a/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:toast/toast.dart';
 
 class ClientPage extends StatelessWidget {
   // This widget is the root of your application.
-
+  List<String> _logs = new List();
+  ClientPage(List<String> logs) {
+    _logs = logs;
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,26 +21,34 @@ class ClientPage extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      home: ClientPageApp('User Page'),
+      home: ClientPageApp('User Page', _logs),
     );
   }
 }
 
 class ClientPageApp extends StatefulWidget {
-  ClientPageApp(String title) {
+  List<String> _logs = new List();
+
+  ClientPageApp(String title, List<String> logs) {
     this.title = title;
+    _logs = logs;
   }
 
   String title;
 
   @override
-  _ClientPageAppState createState() => _ClientPageAppState();
+  _ClientPageAppState createState() => _ClientPageAppState(_logs);
 }
 
 class _ClientPageAppState extends State<ClientPageApp> {
-  final String url = "http://192.168.1.104:2029/places";
+  final String url = "http://192.168.1.104:2201/low";
   List<Model> models = new List<Model>();
   List<Model> _favorites = new List<Model>();
+  ProgressDialog progressDialog;
+  List<String> _logs = new List();
+  _ClientPageAppState(List<String> logs) {
+    _logs = logs;
+  }
 
   final TextEditingController _textEditingControllerLoan =
       new TextEditingController();
@@ -68,43 +81,60 @@ class _ClientPageAppState extends State<ClientPageApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       models[index].name,
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       models[index].type,
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       models[index].power.toString(),
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                Icon(Icons.navigate_next, color: Colors.black38),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].name,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].details,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].type,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].rating.toString(),
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    _makePostReq(models[index].id);
+                  },
+                ),
               ],
             ),
           )),
@@ -113,6 +143,7 @@ class _ClientPageAppState extends State<ClientPageApp> {
 
   @override
   Widget build(BuildContext context) {
+    progressDialog = ProgressDialog(context, type: ProgressDialogType.Normal);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -154,82 +185,72 @@ class _ClientPageAppState extends State<ClientPageApp> {
   @override
   void initState() {
     super.initState();
-    _getModel();
+    // _getModel();
   }
 
   _getModel() {
-    // this.check().then((internet) async {
-    //   if (internet != null && internet) {
-    //     ModelAPI.getModels(url).then((response) {
-    //       setState(() {
-    //         print(response.body);
-    //         Iterable list = json.decode(response.body);
-    //         this.models.clear();
-    //         models = list.map((model) => Model.fromJson(model)).toList();
-    //       });
-    //     });
-    //   } else {
-    //     Toast.show("Client get places works only with network", context,
-    //         duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-    //   }
-    // });
+    setState(() {
+      progressDialog.show();
+    });
+    ModelAPI.getModels(url).then((response) {
+      setState(() {
+        Iterable list = json.decode(response.body);
+        this.models.clear();
+        List<Model> tempList = new List();
+        tempList = list.map((model) => Model.fromJson(model)).toList();
+        tempList.sort((a, b) {
+          if (a.rating > b.rating) return 1;
+          return -1;
+        });
+        if (tempList.length < 10) {
+          for (int i = 0; i < tempList.length; i++) {
+            models.add(tempList[i]);
+          }
+        } else {
+          for (int i = 0; i < 10; i++) {
+            models.add(tempList[i]);
+          }
+        }
+      });
+    }).then((data) {
+      _logs.add(" GET MADE ON  " + this.url);
+      print(_logs);
+      setState(() {
+        progressDialog.hide();
+      });
+    });
   }
 
-  // _showPostLoan() {
-  //   _textEditingControllerLoan.clear();
-  //   var alert = new AlertDialog(
-  //     content: new Column(
-  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //         children: <Widget>[
-  //           new Expanded(
-  //               child: new TextField(
-  //             controller: _textEditingControllerLoan,
-  //             autofocus: true,
-  //             decoration: new InputDecoration(
-  //               labelText: "Id",
-  //             ),
-  //           )),
-  //         ]),
-  //     actions: <Widget>[
-  //       new FlatButton(
-  //           onPressed: () {
-  //             _postReq(_textEditingControllerLoan.text);
-  //           },
-  //           child: Text("Take"))
-  //     ],
-  //   );
-  //   showDialog(
-  //       context: context,
-  //       builder: (_) {
-  //         return alert;
-  //       });
-  // }
-
-  // _postReq(id) async {
-  //   String jsonDict = '{"id":' + id + '}';
-  //   Map<String, String> headers = {"Content-type": "application/json"};
-  //   print(jsonDict);
-  //   Response response = await post('http://192.168.1.104:2029/take',
-  //       headers: headers, body: jsonDict);
-  //   int statusCode = response.statusCode;
-  //   print(statusCode);
-  //   if (statusCode != 200) {
-  //     final Map parsed = json.decode(response.body.toString());
-  //     _logs
-  //         .add(' Bad code  ' + response.statusCode.toString() + parsed['text']);
-  //     Toast.show(parsed['text'], context,
-  //         duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-  //   } else {
-  //     _logs.add(' Success delete  ' + response.statusCode.toString());
-  //     Model m;
-  //     for (int i = 0; i < models.length; i++) {
-  //       if (models[i].id == int.parse(id)) {
-  //         m = models[i];
-  //       }
-  //     }
-  //     _favorites.add(m);
-  //     print(_favorites.toString());
-  //   }
-  //   print(_logs.toString());
-  // }
+  _makePostReq(id) async {
+    setState(() {
+      progressDialog.show();
+    });
+    String jsonDict = '{"id":' + id.toString() + '}';
+    Map<String, String> headers = {"Content-type": "application/json"};
+    print(jsonDict);
+    Response response = await post('http://192.168.1.104:2201/increment',
+        headers: headers, body: jsonDict);
+    int statusCode = response.statusCode;
+    print(statusCode);
+    if (statusCode != 200) {
+      final Map parsed = json.decode(response.body.toString());
+      _logs.add(' BAD CODE ' + statusCode.toString() + '  ' + parsed['text']);
+      print(_logs.toString());
+      Toast.show(parsed['text'], context,
+          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+    } else {
+      _logs.add(' 200 POST ');
+      print(_logs.toString());
+      setState(() {
+        for (int i = 0; i < models.length; i++) {
+          if (models[i].id == id) {
+            models[i].rating = models[i].rating + 1;
+          }
+        }
+      });
+    }
+    setState(() {
+      progressDialog.hide();
+    });
+  }
 }

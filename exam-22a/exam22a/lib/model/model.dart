@@ -1,10 +1,10 @@
 class Model {
   int _id;
   String _name;
+  String _details;
   String _type;
-  String _size;
-  int _power;
-  String _status;
+  int _time;
+  int _rating;
 
   int get id => _id;
 
@@ -12,10 +12,16 @@ class Model {
     _id = id;
   }
 
-  int get power => _power;
+  int get time => _time;
 
-  set power(int power) {
-    _power = power;
+  set time(int time) {
+    _time = time;
+  }
+
+  int get rating => _rating;
+
+  set rating(int rating) {
+    _rating = rating;
   }
 
   String get name => _name;
@@ -24,43 +30,37 @@ class Model {
     _name = name;
   }
 
+  String get details => _details;
+
+  set details(String details) {
+    _details = details;
+  }
+
   String get type => _type;
 
   set type(String type) {
     _type = type;
   }
 
-  String get size => _size;
-
-  set size(String size) {
-    _size = size;
-  }
-
-  String get status => _status;
-
-  set status(String status) {
-    _status = status;
-  }
-
   Model.fromJson(Map<String, dynamic> json)
       : _id = json['id'],
         _name = json['name'].toString(),
         _type = json['type'].toString(),
-        _size = json['size'].toString(),
-        _power = json['power'],
-        _status = json['status'].toString();
+        _details = json['details'].toString(),
+        _time = json['time'],
+        _rating = json['rating'];
 
   Model(
-    String name,
-    String type,
-    String size,
-    String status,
-    int power,
+    String _name,
+    String _details,
+    String _type,
+    int _time,
+    int _rating,
   ) {
     _name = name;
     _type = type;
-    _size = size;
-    _power = power;
-    _status = status;
+    _details = details;
+    _time = time;
+    _rating = rating;
   }
 }

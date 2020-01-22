@@ -6,6 +6,7 @@ import 'package:toast/toast.dart';
 
 class SelectionPage extends StatelessWidget {
   // This widget is the root of your application.
+  List<String> _logs = new List();
 
   Future<bool> check() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -31,10 +32,10 @@ class SelectionPage extends StatelessWidget {
             FlatButton(
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ClientPage()));
+                    MaterialPageRoute(builder: (context) => ClientPage(_logs)));
               },
               child: Text(
-                "User",
+                "Rate",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               color: Colors.green,
@@ -52,7 +53,7 @@ class SelectionPage extends StatelessWidget {
                 });
               },
               child: Text(
-                "Owner",
+                "Main",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               color: Colors.blue,
