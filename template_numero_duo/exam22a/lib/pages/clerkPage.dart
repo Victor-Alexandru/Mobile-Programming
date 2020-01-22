@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'package:exames_29a/API/ModelApi.dart';
-import 'package:exames_29a/model/model.dart';
+import 'package:exam22a/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:progress_dialog/progress_dialog.dart';
-import 'package:toast/toast.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -34,19 +32,12 @@ class ClerkPageApp extends StatefulWidget {
 
 class _ClerkPageAppState extends State<ClerkPageApp> {
   List<Model> models = new List<Model>();
-  List<String> _logs = new List<String>();
-  List<String> _socketMsg = new List<String>();
-
-  final WebSocketChannel channel =
-      IOWebSocketChannel.connect('ws://192.168.1.104:2029/');
-
-  bool isReq = false;
   ProgressDialog progressDialog;
 
-  // final _formKey = GlobalKey<FormState>();
-  // String _input_total_matches;
-  // String _input_trophy;
-  final String url = "http://192.168.1.104:2029/allPlaces";
+  // final WebSocketChannel channel =
+  //     IOWebSocketChannel.connect('ws://192.168.1.104:2029/');
+
+  final String url = "http://192.168.1.104:2224/all";
 
   final TextEditingController _textEditingControllerDelete =
       new TextEditingController();
@@ -66,11 +57,11 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   final TextEditingController _textEditingControllerYear =
       new TextEditingController();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _getModels();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _getModels();
+  }
 
   Widget ModelCell(BuildContext ctx, int index) {
     return GestureDetector(
@@ -90,54 +81,55 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      models[index].name,
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      models[index].type,
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      models[index].status,
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      models[index].power.toString(),
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   children: <Widget>[
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //     Text(
+                //       songs[index].title,
+                //       style:
+                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //     ),
+                //   ],
+                // ),
+                // Row(
+                //   children: <Widget>[
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //     Text(
+                //       songs[index].album,
+                //       style:
+                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //     ),
+                //   ],
+                // ),
+                // Row(
+                //   children: <Widget>[
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //     Text(
+                //       songs[index].genre,
+                //       style:
+                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //     ),
+                //   ],
+                // ),
+                // Row(
+                //   children: <Widget>[
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //     Text(
+                //       songs[index].year.toString(),
+                //       style:
+                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //     ),
+                //   ],
+                // ),
+                Icon(Icons.navigate_next, color: Colors.black38),
               ],
             ),
           )),
@@ -172,20 +164,15 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             itemCount: models.length,
             itemBuilder: (context, index) => ModelCell(context, index),
           ),
-          StreamBuilder(
-            stream: this.channel.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                this._socketMsg.add(snapshot.data.toString());
-                setState(() {
-                  Toast.show('dwqdwqdwq', this.context,
-        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-                });
-                // _showMsg(snapshot.data.toString());
-              }
-              return Text('');
-            },
-          ),
+          // StreamBuilder(
+          //   stream: this.channel.stream,
+          //   builder: (context, snapshot) {
+          //     if (snapshot.hasData) {
+          //       return Text(snapshot.data.toString());
+          //     }
+          //     return Text('');
+          //   },
+          // ),
         ]),
       ), // This trailing comma makes auto-formatting nicer for build methods.
       floatingActionButton: FloatingActionButton(
@@ -196,11 +183,6 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
           ),
           onPressed: _showFormDialog),
     );
-  }
-
-  _showMsg(msg) {
-    Toast.show(msg, this.context,
-        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
   }
 
   void _showFormDialog() {
@@ -218,7 +200,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerTitle,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Name",
+              labelText: "Title",
             ),
           )),
           new Expanded(
@@ -226,7 +208,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerDescription,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "type",
+              labelText: "Description",
             ),
           )),
           new Expanded(
@@ -234,7 +216,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerAlbum,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "size",
+              labelText: "Album",
             ),
           )),
           new Expanded(
@@ -242,7 +224,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerGenre,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "status",
+              labelText: "Genre",
             ),
           )),
           new Expanded(
@@ -250,7 +232,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerYear,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "power(int)",
+              labelText: "Year",
             ),
           )),
         ],
@@ -258,26 +240,26 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
       actions: <Widget>[
         new FlatButton(
             onPressed: () {
-              var c = new Model(
-                  _textEditingControllerTitle.text,
-                  _textEditingControllerDescription.text,
-                  _textEditingControllerAlbum.text,
-                  _textEditingControllerGenre.text,
-                  int.parse(_textEditingControllerYear.text));
+              // var c = new Song(
+              //     _textEditingControllerTitle.text,
+              //     _textEditingControllerDescription.text,
+              //     _textEditingControllerAlbum.text,
+              //     _textEditingControllerGenre.text,
+              //     int.parse(_textEditingControllerYear.text));
 
-              String jsonDict = '{"name":"' +
+              String jsonDict = '{"title":"' +
                   _textEditingControllerTitle.text +
-                  '" , "type": "' +
+                  '" , "description": "' +
                   _textEditingControllerDescription.text +
-                  '" , "size": "' +
+                  '" , "album": "' +
                   _textEditingControllerAlbum.text +
-                  '" , "status": "' +
+                  '" , "genre": "' +
                   _textEditingControllerGenre.text +
-                  '" , "power": ' +
+                  '" , "year": ' +
                   _textEditingControllerYear.text +
                   '}';
 
-              _makePostRequest(jsonDict, c);
+              // _makePostRequest(jsonDict, c);
             },
             child: Text("Save")),
       ],
@@ -307,7 +289,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
       actions: <Widget>[
         new FlatButton(
             onPressed: () {
-              _deleteReq(_textEditingControllerDelete.text);
+              // _deleteReq(_textEditingControllerDelete.text);
             },
             child: Text("Delete"))
       ],
@@ -319,94 +301,94 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
         });
   }
 
-  _deleteReq(id) async {
-    setState(() {
-      progressDialog.show();
-    });
-    String url = 'http://192.168.1.104:2029/place' + '/' + id.toString();
-    Response response = await ModelAPI.makeDeleteRequest(url);
-    print(_logs.toString());
-    if (response.statusCode == 200) {
-      _logs.add('   Success delete' + response.statusCode.toString());
-    } else {
-      final Map parsed = json.decode(response.body.toString());
-      _logs
-          .add('  Bad code ' + response.statusCode.toString() + parsed['text']);
-    }
-    if (response.statusCode == 200) {
-      setState(() {
-        models.removeWhere((a) => a.id == int.parse(id));
-      });
-    }
-    setState(() {
-      progressDialog.hide();
-    });
-  }
+  // _deleteReq(id) async {
+  // setState(() {
+  //   progressDialog.show();
+  // });
+  //   String url = 'http://192.168.1.104:2224/song' + '/' + id.toString();
+  //   Response response = await SongAPI.makeDeleteRequest(url);
+  //   print(_logs.toString());
+  //   if (response.statusCode == 200) {
+  //     _logs.add('Success delete' + response.statusCode.toString());
+  //   } else {
+  //     final Map parsed = json.decode(response.body.toString());
+  //     _logs.add('Bad code ' + response.statusCode.toString() + parsed['text']);
+  //   }
+  //   if (response.statusCode == 200) {
+  //     setState(() {
+  //       songs.removeWhere((a) => a.id == int.parse(id));
+  //     });
+  //   }
+  // setState(() {
+  //     progressDialog.hide();
+  //   });
+  // }
 
-  _makePostRequest(jsonDict, c) async {
-    Map<String, String> headers = {"Content-type": "application/json"};
-    Response response = await post('http://192.168.1.104:2029/place',
-        headers: headers, body: jsonDict);
-    int statusCode = response.statusCode;
-    final Map parsed = json.decode(response.body.toString());
-    c.id = parsed['id'];
+  // _makePostRequest(jsonDict, c) async {
+  //  setState(() {
+  //   progressDialog.show();
+  // });
+  //   Map<String, String> headers = {"Content-type": "application/json"};
+  //   Response response = await post('http://192.168.1.104:2224/song',
+  //       headers: headers, body: jsonDict);
+  //   int statusCode = response.statusCode;
+  //   final Map parsed = json.decode(response.body.toString());
+  //   c.id = parsed['id'];
 
-    print(jsonDict);
-    print(statusCode);
-    print(response.toString());
+  //   print(jsonDict);
+  //   print(statusCode);
+  //   print(response.toString());
 
-    if (statusCode == 200) {
-      setState(() {
-        this.models.add(c);
-        models.sort((a, b) {
-          if (a.status.compareTo(b.status) == 0) {
-            if (a.power < b.power) return -1;
-            return 1;
-          }
-          if (a.status.compareTo(b.status) < 0) {
-            return 1;
-          }
-          return -1;
-        });
-      });
-      _textEditingControllerTitle.clear();
-      _textEditingControllerDescription.clear();
-      _textEditingControllerAlbum.clear();
-      _textEditingControllerGenre.clear();
-      _textEditingControllerYear.clear();
-    }
-  }
+  //   if (statusCode == 200) {
+  //     setState(() {
+  //       this.songs.add(c);
+  //       this.songs.sort((a, b) {
+  //         if (a.album.compareTo(b.album) == 0) {
+  //           if (a.title.compareTo(b.title) < 0) return -1;
+  //           return 1;
+  //         }
+  //         if (a.album.compareTo(b.album) < 0) {
+  //           return -1;
+  //         }
+  //         return 1;
+  //       });
+  //     });
+  //     _textEditingControllerTitle.clear();
+  //     _textEditingControllerDescription.clear();
+  //     _textEditingControllerAlbum.clear();
+  //     _textEditingControllerGenre.clear();
+  //     _textEditingControllerYear.clear();
+  //   }
+  // setState(() {
+  //     progressDialog.hide();
+  //   });
+  // }
 
   _getModels() async {
-    setState(() {
-      progressDialog.show();
-    });
-    ModelAPI.getModels(url).then((response) {
-      setState(() {
-        print(response.body);
-        Iterable list = json.decode(response.body);
-        models = list.map((model) => Model.fromJson(model)).toList();
-        models.sort((a, b) {
-          if (a.status.compareTo(b.status) == 0) {
-            if (a.power < b.power) return -1;
-            return 1;
-          }
-          if (a.status.compareTo(b.status) < 0) {
-            return 1;
-          }
-          return -1;
-        });
-      });
-    }).then((data) {
-      setState(() {
-        progressDialog.hide();
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    channel.sink.close();
-    super.dispose();
+    // setState(() {
+    //   progressDialog.show();
+    // });
+    //   SongAPI.getSongs(url).then((response) {
+    //     setState(() {
+    //       print(response.body);
+    //       Iterable list = json.decode(response.body);
+    //       songs = list.map((model) => Song.fromJson(model)).toList();
+    //       songs.sort((a, b) {
+    //         if (a.album.compareTo(b.album) == 0) {
+    //           if (a.title.compareTo(b.title) < 0) return -1;
+    //           return 1;
+    //         }
+    //         if (a.album.compareTo(b.album) < 0) {
+    //           return -1;
+    //         }
+    //         return 1;
+    //       });
+    //     });
+    //   })..then((data) {
+    //   setState(() {
+    //     progressDialog.hide();
+    //   });
+    // });
+    // }
   }
 }
