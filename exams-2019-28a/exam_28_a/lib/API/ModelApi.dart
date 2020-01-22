@@ -1,7 +1,7 @@
 import 'package:http/http.dart';
 
 class ModelAPI {
-  static Future getSongs(url) {
+  static Future getModels(url) {
     return get(url);
   }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:exam_28_a/API/ModelApi.dart';
 import 'package:exam_28_a/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -34,7 +35,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   // final _formKey = GlobalKey<FormState>();
   // String _input_total_matches;
   // String _input_trophy;
-  final String url = "http://192.168.1.104:2224/all";
+  final String url = "http://192.168.1.104:2028/all";
 
   final TextEditingController _textEditingControllerDelete =
       new TextEditingController();
@@ -60,7 +61,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
     _getModels();
   }
 
-  Widget SongCell(BuildContext ctx, int index) {
+  Widget ModelCell(BuildContext ctx, int index) {
     return GestureDetector(
       onTap: () {
         // final snackBar = SnackBar(content: Text("Tap"));
@@ -78,54 +79,54 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       songs[index].title,
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       songs[index].album,
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       songs[index].genre,
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: <Widget>[
-                //     SizedBox(
-                //       width: 8,
-                //     ),
-                //     Text(
-                //       songs[index].year.toString(),
-                //       style:
-                //           TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //   ],
-                // ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].name,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].type,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].size,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      models[index].status,
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
                 Icon(Icons.navigate_next, color: Colors.black38),
               ],
             ),
@@ -157,7 +158,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
         child: Stack(children: <Widget>[
           ListView.builder(
             itemCount: models.length,
-            itemBuilder: (context, index) => SongCell(context, index),
+            itemBuilder: (context, index) => ModelCell(context, index),
           ),
         ]),
       ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -186,7 +187,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerTitle,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Title",
+              labelText: "name",
             ),
           )),
           new Expanded(
@@ -194,7 +195,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerDescription,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Description",
+              labelText: "type",
             ),
           )),
           new Expanded(
@@ -202,7 +203,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerAlbum,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Album",
+              labelText: "size",
             ),
           )),
           new Expanded(
@@ -210,7 +211,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerGenre,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Genre",
+              labelText: "owner",
             ),
           )),
           new Expanded(
@@ -218,7 +219,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             controller: _textEditingControllerYear,
             autofocus: true,
             decoration: new InputDecoration(
-              labelText: "Year",
+              labelText: "status",
             ),
           )),
         ],
@@ -226,26 +227,27 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
       actions: <Widget>[
         new FlatButton(
             onPressed: () {
-              // var c = new Song(
-              //     _textEditingControllerTitle.text,
-              //     _textEditingControllerDescription.text,
-              //     _textEditingControllerAlbum.text,
-              //     _textEditingControllerGenre.text,
-              //     int.parse(_textEditingControllerYear.text));
-
-              String jsonDict = '{"title":"' +
+              String jsonDict = '{"name":"' +
                   _textEditingControllerTitle.text +
-                  '" , "description": "' +
+                  '" , "type": "' +
                   _textEditingControllerDescription.text +
-                  '" , "album": "' +
+                  '" , "size": "' +
                   _textEditingControllerAlbum.text +
-                  '" , "genre": "' +
+                  '" , "owner": "' +
                   _textEditingControllerGenre.text +
-                  '" , "year": ' +
+                  '" , "status": "' +
                   _textEditingControllerYear.text +
-                  '}';
+                   '"}';
+              print(jsonDict);
 
-              // _makePostRequest(jsonDict, c);
+              var c = new Model(
+                  _textEditingControllerTitle.text,
+                  _textEditingControllerDescription.text,
+                  _textEditingControllerAlbum.text,
+                  _textEditingControllerGenre.text,
+                  _textEditingControllerYear.text);
+
+              _makePostRequest(jsonDict, c);
             },
             child: Text("Save")),
       ],
@@ -275,7 +277,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
       actions: <Widget>[
         new FlatButton(
             onPressed: () {
-              // _deleteReq(_textEditingControllerDelete.text);
+              _deleteReq(_textEditingControllerDelete.text);
             },
             child: Text("Delete"))
       ],
@@ -287,75 +289,68 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
         });
   }
 
-  // _deleteReq(id) async {
-  //   String url = 'http://192.168.1.104:2224/song' + '/' + id.toString();
-  //   Response response = await SongAPI.makeDeleteRequest(url);
-  //   print(_logs.toString());
-  //   if (response.statusCode == 200) {
-  //     _logs.add('Success delete' + response.statusCode.toString());
-  //   } else {
-  //     final Map parsed = json.decode(response.body.toString());
-  //     _logs.add('Bad code ' + response.statusCode.toString() + parsed['text']);
-  //   }
-  //   if (response.statusCode == 200) {
-  //     setState(() {
-  //       songs.removeWhere((a) => a.id == int.parse(id));
-  //     });
-  //   }
-  // }
+  _deleteReq(id) async {
+    String url = 'http://192.168.1.104:2028/bike' + '/' + id.toString();
+    Response response = await ModelAPI.makeDeleteRequest(url);
+    print(_logs.toString());
+    if (response.statusCode == 200) {
+      _logs.add('Success delete' + response.statusCode.toString());
+    } else {
+      final Map parsed = json.decode(response.body.toString());
+      _logs.add('Bad code ' + response.statusCode.toString() + parsed['text']);
+    }
+    if (response.statusCode == 200) {
+      setState(() {
+        models.removeWhere((a) => a.id == int.parse(id));
+      });
+    }
+  }
 
-  // _makePostRequest(jsonDict, c) async {
-  //   Map<String, String> headers = {"Content-type": "application/json"};
-  //   Response response = await post('http://192.168.1.104:2224/song',
-  //       headers: headers, body: jsonDict);
-  //   int statusCode = response.statusCode;
-  //   final Map parsed = json.decode(response.body.toString());
-  //   c.id = parsed['id'];
+  _makePostRequest(jsonDict, c) async {
+    print("Inainte de request");
+    Map<String, String> headers = {"Content-type": "application/json"};
+    Response response = await post('http://192.168.1.104:2028/bike',
+        headers: headers, body: jsonDict);
+    int statusCode = response.statusCode;
+    final Map parsed = json.decode(response.body.toString());
+    c.id = parsed['id'];
 
-  //   print(jsonDict);
-  //   print(statusCode);
-  //   print(response.toString());
+    print(jsonDict);
+    print(statusCode);
+    print(response.toString());
 
-  //   if (statusCode == 200) {
-  //     setState(() {
-  //       this.songs.add(c);
-  //       this.songs.sort((a, b) {
-  //         if (a.album.compareTo(b.album) == 0) {
-  //           if (a.title.compareTo(b.title) < 0) return -1;
-  //           return 1;
-  //         }
-  //         if (a.album.compareTo(b.album) < 0) {
-  //           return -1;
-  //         }
-  //         return 1;
-  //       });
-  //     });
-  //     _textEditingControllerTitle.clear();
-  //     _textEditingControllerDescription.clear();
-  //     _textEditingControllerAlbum.clear();
-  //     _textEditingControllerGenre.clear();
-  //     _textEditingControllerYear.clear();
-  //   }
-  // }
+    if (statusCode == 200) {
+      setState(() {
+        this.models.add(c);
+        models.sort((a, b) {
+          if (a.type.compareTo(b.type) < 0) {
+            return 1;
+          }
+          return -1;
+        });
+      });
+
+      _textEditingControllerTitle.clear();
+      _textEditingControllerDescription.clear();
+      _textEditingControllerAlbum.clear();
+      _textEditingControllerGenre.clear();
+      _textEditingControllerYear.clear();
+    }
+  }
 
   _getModels() async {
-    //   SongAPI.getSongs(url).then((response) {
-    //     setState(() {
-    //       print(response.body);
-    //       Iterable list = json.decode(response.body);
-    //       songs = list.map((model) => Song.fromJson(model)).toList();
-    //       songs.sort((a, b) {
-    //         if (a.album.compareTo(b.album) == 0) {
-    //           if (a.title.compareTo(b.title) < 0) return -1;
-    //           return 1;
-    //         }
-    //         if (a.album.compareTo(b.album) < 0) {
-    //           return -1;
-    //         }
-    //         return 1;
-    //       });
-    //     });
-    //   });
-    // }
+    ModelAPI.getModels(url).then((response) {
+      setState(() {
+        print(response.body);
+        Iterable list = json.decode(response.body);
+        models = list.map((model) => Model.fromJson(model)).toList();
+        models.sort((a, b) {
+          if (a.type.compareTo(b.type) < 0) {
+            return 1;
+          }
+          return -1;
+        });
+      });
+    });
   }
 }
