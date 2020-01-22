@@ -4,6 +4,9 @@ import 'package:exames_29a/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:progress_dialog/progress_dialog.dart';
+import 'package:toast/toast.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ClerkPage extends StatelessWidget {
   // This widget is the root of your application.
@@ -32,9 +35,13 @@ class ClerkPageApp extends StatefulWidget {
 class _ClerkPageAppState extends State<ClerkPageApp> {
   List<Model> models = new List<Model>();
   List<String> _logs = new List<String>();
+  List<String> _socketMsg = new List<String>();
+
+  final WebSocketChannel channel =
+      IOWebSocketChannel.connect('ws://192.168.1.104:2029/');
 
   bool isReq = false;
-  ProgressDialog progressDialog ;
+  ProgressDialog progressDialog;
 
   // final _formKey = GlobalKey<FormState>();
   // String _input_total_matches;
@@ -131,7 +138,6 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
                     ),
                   ],
                 ),
-                Text(isReq.toString())
               ],
             ),
           )),
@@ -140,9 +146,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
 
   @override
   Widget build(BuildContext context) {
-    
-    progressDialog = ProgressDialog(context,type: ProgressDialogType.Normal);
-
+    progressDialog = ProgressDialog(context, type: ProgressDialogType.Normal);
 
     return Scaffold(
       appBar: AppBar(
@@ -168,6 +172,16 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
             itemCount: models.length,
             itemBuilder: (context, index) => ModelCell(context, index),
           ),
+          StreamBuilder(
+            stream: this.channel.stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                this._socketMsg.add(snapshot.data.toString());
+                _showMsg(snapshot.data.toString());
+              }
+              return Text('');
+            },
+          ),
         ]),
       ), // This trailing comma makes auto-formatting nicer for build methods.
       floatingActionButton: FloatingActionButton(
@@ -178,6 +192,11 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
           ),
           onPressed: _showFormDialog),
     );
+  }
+
+  _showMsg(msg) {
+    Toast.show(msg, this.context,
+        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
   }
 
   void _showFormDialog() {
@@ -379,5 +398,11 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
         progressDialog.hide();
       });
     });
+  }
+
+  @override
+  void dispose() {
+    channel.sink.close();
+    super.dispose();
   }
 }
