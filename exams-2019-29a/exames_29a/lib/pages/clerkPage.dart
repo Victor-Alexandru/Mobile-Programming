@@ -3,6 +3,7 @@ import 'package:exames_29a/API/ModelApi.dart';
 import 'package:exames_29a/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class ClerkPage extends StatelessWidget {
   // This widget is the root of your application.
@@ -32,6 +33,9 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   List<Model> models = new List<Model>();
   List<String> _logs = new List<String>();
 
+  bool isReq = false;
+  ProgressDialog progressDialog ;
+
   // final _formKey = GlobalKey<FormState>();
   // String _input_total_matches;
   // String _input_trophy;
@@ -55,11 +59,11 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   final TextEditingController _textEditingControllerYear =
       new TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _getModels();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _getModels();
+  // }
 
   Widget ModelCell(BuildContext ctx, int index) {
     return GestureDetector(
@@ -127,7 +131,7 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
                     ),
                   ],
                 ),
-                Icon(Icons.navigate_next, color: Colors.black38),
+                Text(isReq.toString())
               ],
             ),
           )),
@@ -136,6 +140,10 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
 
   @override
   Widget build(BuildContext context) {
+    
+    progressDialog = ProgressDialog(context,type: ProgressDialogType.Normal);
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -289,6 +297,9 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   }
 
   _deleteReq(id) async {
+    setState(() {
+      progressDialog.show();
+    });
     String url = 'http://192.168.1.104:2029/place' + '/' + id.toString();
     Response response = await ModelAPI.makeDeleteRequest(url);
     print(_logs.toString());
@@ -304,6 +315,9 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
         models.removeWhere((a) => a.id == int.parse(id));
       });
     }
+    setState(() {
+      progressDialog.hide();
+    });
   }
 
   _makePostRequest(jsonDict, c) async {
@@ -341,6 +355,9 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
   }
 
   _getModels() async {
+    setState(() {
+      progressDialog.show();
+    });
     ModelAPI.getModels(url).then((response) {
       setState(() {
         print(response.body);
@@ -356,6 +373,10 @@ class _ClerkPageAppState extends State<ClerkPageApp> {
           }
           return -1;
         });
+      });
+    }).then((data) {
+      setState(() {
+        progressDialog.hide();
       });
     });
   }
